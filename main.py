@@ -26,3 +26,10 @@ if __name__ == "__main__":
 
     # Muestra 5 imágenes con sus edades
     show_sample_images(dataset, num_images=5)
+
+    from datasets.fgnet_dataset import FGNETDataset
+
+    fgnet = FGNETDataset("data/FGNET/images")
+    print(f"FG-NET cargado con {len(fgnet)} imágenes.")
+
+    show_sample_images(fgnet, num_images=5)
