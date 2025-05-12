@@ -1,4 +1,6 @@
 import os
+
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 import re
@@ -32,4 +34,4 @@ class FGNETDataset(Dataset):
         age = self.ages[idx]
         if self.transform:
             image = self.transform(image)
-        return image, age
+        return image, torch.tensor(age, dtype=torch.float32)
