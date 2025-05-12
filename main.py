@@ -1,35 +1,18 @@
-# main.py
-import matplotlib.pyplot as plt
-from torch.utils.data import DataLoader
-from datasets.cacd_dataset import CACDDataset
+import sys
 
-def show_sample_images(dataset, num_images=5):
-    for i in range(num_images):
-        img, age = dataset[i]
-        img = img.permute(1, 2, 0)  # cambiar de [C,H,W] a [H,W,C] para matplotlib
-        img = (img * 0.5) + 0.5     # desnormaliza si usaste Normalize(mean=0.5, std=0.5)
-        plt.imshow(img.numpy())
-        plt.title(f"Edad: {age}")
-        plt.axis('off')
-        plt.show()
+from scripts.evaluate import evaluate_model_on_fgnet
+from scripts.train import train
+# from scripts.evaluate import evaluate  # Puedes descomentar cuando implementes esto
 
 if __name__ == "__main__":
-    dataset = CACDDataset(
-        csv_path="data/cacd/CACD_features_sex.csv",
-        images_dir="data/cacd/cacd_split/cacd_split",
-        image_size=224
-    )
+    mode = "eval"  # Cambia a "eval" cuando tengas evaluate.py listo
 
-    dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=4)
-
-    print(f"Dataset cargado con {len(dataset)} imágenes.")
-
-    # Muestra 5 imágenes con sus edades
-    show_sample_images(dataset, num_images=5)
-
-    from datasets.fgnet_dataset import FGNETDataset
-
-    fgnet = FGNETDataset("data/FGNET/images")
-    print(f"FG-NET cargado con {len(fgnet)} imágenes.")
-
-    show_sample_images(fgnet, num_images=5)
+    if mode == "train":
+        train()
+    elif mode == "eval":
+        weights = "checkpoints/best_model.pt"
+        fgnet_data_dir = "data/FGNET/images"
+        evaluate_model_on_fgnet(weights_path=weights, fgnet_dir=fgnet_data_dir)
+    else:
+        print("Modo no reconocido")
+        sys.exit(1)

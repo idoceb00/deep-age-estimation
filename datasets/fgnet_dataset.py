@@ -1,36 +1,35 @@
 import os
 from PIL import Image
 from torch.utils.data import Dataset
-import torchvision.transforms as transforms
+import re
 
 class FGNETDataset(Dataset):
-    def __init__(self, images_dir="data/FGNET/images", image_size=224, custom_transform=None):
-        self.images_dir = images_dir
-        self.image_files = [
-            f for f in os.listdir(images_dir)
-            if f.lower().endswith(('.jpg', '.png')) and 'A' in f
-        ]
+    def __init__(self, root_dir, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        self.image_paths = []
+        self.ages = []
 
-        self.transform = custom_transform or transforms.Compose([
-            transforms.Resize((image_size, image_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.5]*3, std=[0.5]*3)
-        ])
+        for filename in os.listdir(root_dir):
+            if filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+                match = re.match(r'^\d{3}[A-Z](\d{2})', filename)
+                if match:
+                    try:
+                        age = int(match.group(1))
+                        self.image_paths.append(os.path.join(root_dir, filename))
+                        self.ages.append(age)
+                    except ValueError:
+                        print(f"[WARN] Edad inválida en: {filename}")
+                else:
+                    print(f"[SKIP] No se reconoce el patrón de edad en: {filename}")
 
     def __len__(self):
-        return len(self.image_files)
+        return len(self.image_paths)
 
     def __getitem__(self, idx):
-        img_name = self.image_files[idx]
-
-        try:
-            age_str = img_name.split('A')[1].split('.')[0]
-            age = float(age_str)
-        except (IndexError, ValueError):
-            raise ValueError(f"No se pudo extraer la edad del archivo: {img_name}")
-
-        img_path = os.path.join(self.images_dir, img_name)
-        image = Image.open(img_path).convert("RGB")
-        image = self.transform(image)
-
+        image_path = self.image_paths[idx]
+        image = Image.open(image_path).convert('RGB')
+        age = self.ages[idx]
+        if self.transform:
+            image = self.transform(image)
         return image, age

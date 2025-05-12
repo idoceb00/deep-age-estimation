@@ -1,12 +1,15 @@
 import torch
 import torch.nn as nn
 from torchvision import models
+from torchvision.models import ResNet50_Weights
+
 
 class DeepAgeNet(nn.Module):
     def __init__(self, pretrained=True):
         super(DeepAgeNet, self).__init__()
 
-        self.backbone = models.resnet50(pretrained=pretrained)
+        weights = ResNet50_Weights.DEFAULT if pretrained else None
+        self.backbone = models.resnet50(weights=weights)
 
         self.backbone.fc = nn.Sequential(
             nn.Linear(2048, 512),
