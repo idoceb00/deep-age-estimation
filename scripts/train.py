@@ -6,6 +6,16 @@ import os
 
 from sklearn.metrics import mean_absolute_error
 
+class WeightedMAE(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, preds, targets):
+        abs_error = torch.abs(preds - targets)
+        weights = 1 + ((targets < 10) | (targets > 60)).float() * 2
+        weighted_error = abs_error * weights
+        return torch.mean(weighted_error)
+
 def freeze_backbone(model):
     for param in model.backbone.parameters():
         param.requires_grad = False
@@ -23,7 +33,7 @@ def train_model(model, train_loader, val_loader, device, epochs=25, save_path="c
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     freeze_backbone(model)
-    criterion = nn.HuberLoss()
+    criterion = WeightedMAE()
     optimizer = Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
 
