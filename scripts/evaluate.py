@@ -1,4 +1,5 @@
 import torch
+import time
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import numpy as np
 import matplotlib.pyplot as plt
@@ -39,6 +40,7 @@ def evaluate(model, dataloader, device):
     model.eval()
     preds, targets = [], []
 
+    start_time = time.time()
     with torch.no_grad():
         for inputs, labels in dataloader:
             inputs = inputs.to(device)
@@ -47,10 +49,23 @@ def evaluate(model, dataloader, device):
             preds.extend(outputs.cpu().numpy())
             targets.extend(labels.cpu().numpy())
 
+    end_time = time.time()
+
     mae = mean_absolute_error(targets, preds)
     mse = mean_squared_error(targets, preds)
     r2 = r2_score(targets, preds)
     acc = compute_age_group_accuracy(preds, targets, tolerance=5)
+
+    elapsed = end_time -start_time
+    total_samples = len(dataloader.dataset)
+    samples_per_second = total_samples / elapsed
+    samples_per_minute = samples_per_second * 60
+
+    print("[RENDIMIENTO]")
+    print(f"Tiempo total de inferencia: {elapsed:.2f} s")
+    print(f"Samples procesados: {total_samples}")
+    print(f"Velocidad: {samples_per_second: .2f} imagenes/segundo")
+    print(f"           {samples_per_minute: .2f} imagenes/minuto")
 
     print("\n[RESULTADOS TEST FINAL]")
     print(f"MAE: {mae:.2f}")
