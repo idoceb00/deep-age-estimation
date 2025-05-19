@@ -6,16 +6,6 @@ import os
 
 from sklearn.metrics import mean_absolute_error
 
-class WeightedMAE(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, preds, targets):
-        abs_error = torch.abs(preds - targets)
-        weights = 1 + ((targets < 10) | (targets > 60)).float() * 2
-        weighted_error = abs_error * weights
-        return torch.mean(weighted_error)
-
 def freeze_backbone(model):
     for param in model.backbone.parameters():
         param.requires_grad = False
@@ -29,13 +19,13 @@ def unfreeze_backbone(model, block_name):
             param.requires_grad = True
         print(f"[INFO] Unfrozen block: {block_name}")
 
-def train_model(model, train_loader, val_loader, device, epochs=25, save_path="checkpoints/best_model.pth"):
+def train_model(model, train_loader, val_loader, device, epochs=25, unfreeze_interval = 5, save_path="checkpoints/best_model.pth"):
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     freeze_backbone(model)
-    criterion = WeightedMAE()
+    criterion = nn.HuberLoss()
     optimizer = Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
     best_val_mae = float('inf')
     history = {
@@ -47,7 +37,6 @@ def train_model(model, train_loader, val_loader, device, epochs=25, save_path="c
 
     unfreeze_blocks = ["layer4", "layer3", "layer2", "layer1", "conv1"]
     blocks_to_unfreeze = []
-    unfreeze_interval = 5
     early_stopping_patience = 5
     no_improve_epochs = 0
 
@@ -98,7 +87,7 @@ def train_model(model, train_loader, val_loader, device, epochs=25, save_path="c
         avg_val_loss = val_loss / len(val_loader)
 
         # Scheduler
-        scheduler.step(avg_val_loss)
+        scheduler.step()
 
         # Logging
         history["train_loss"].append(avg_train_loss)

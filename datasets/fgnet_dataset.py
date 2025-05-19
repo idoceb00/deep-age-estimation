@@ -20,6 +20,8 @@ class FGNETDataset(Dataset):
                         age = int(match.group(1))
                         self.image_paths.append(os.path.join(root_dir, filename))
                         self.ages.append(age)
+                        print(f"[INFO] {len(self.image_paths)} imágenes válidas en: {root_dir}")
+
                     except ValueError:
                         print(f"[WARN] Edad inválida en: {filename}")
                 else:
