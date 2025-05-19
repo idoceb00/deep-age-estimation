@@ -7,12 +7,20 @@ import os
 from sklearn.metrics import mean_absolute_error
 
 def freeze_backbone(model):
+    """
+    Freezes all layers in the model's backbone except for the final fully connected (fc) head
+    """
     for param in model.backbone.parameters():
         param.requires_grad = False
     for param in model.backbone.fc.parameters():
         param.requires_grad = True
 
 def unfreeze_backbone(model, block_name):
+    """
+    Unfreezes a specific block in the model's to allow fine-tuning
+
+    Used during progressive unfreezing. Allows to gradually enable training
+    """
     block = getattr(model.backbone, block_name, None)
     if block is not None:
         for param in block.parameters():
@@ -20,6 +28,22 @@ def unfreeze_backbone(model, block_name):
         print(f"[INFO] Unfrozen block: {block_name}")
 
 def train_model(model, train_loader, val_loader, device, epochs=25, unfreeze_interval = 5, save_path="checkpoints/best_model.pth"):
+    """
+    Trains the Deep AgeNet model using progressive fine-tuning and early stopping
+
+    The training procedure starts with the backbone frozen, and gradually unfreezes
+    specific blocks every 'unfreeze_interval' epochs. It uses Huber Loss as the loss
+    function to be less sentitive for outliers, with an Adam optimizer and StepLR scheduler
+
+    :param model: Deep AgeNet model to be trained
+    :param train_loader: DataLoader for training data
+    :param val_loader: DataLoader for validation data
+    :param device: Device to train on (CPU or GPU)
+    :param epochs: Total number of epochs
+    :param unfreeze_interval: Number of epochs between ech unfreeze
+    :param save_path: Path to save the best model checkpoint
+    :return:
+    """
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     freeze_backbone(model)
@@ -40,6 +64,7 @@ def train_model(model, train_loader, val_loader, device, epochs=25, unfreeze_int
     early_stopping_patience = 5
     no_improve_epochs = 0
 
+    # Training loop
     for epoch in range(1, epochs + 1):
 
         model.train()
@@ -65,7 +90,7 @@ def train_model(model, train_loader, val_loader, device, epochs=25, unfreeze_int
         train_mae = mean_absolute_error(all_targets, all_preds)
         avg_train_loss = running_loss / len(train_loader)
 
-        # Validación
+        # Validation
         model.eval()
         val_loss = 0.0
         val_preds = []
@@ -86,7 +111,6 @@ def train_model(model, train_loader, val_loader, device, epochs=25, unfreeze_int
         val_mae = mean_absolute_error(val_targets, val_preds)
         avg_val_loss = val_loss / len(val_loader)
 
-        # Scheduler
         scheduler.step()
 
         # Logging
@@ -99,7 +123,7 @@ def train_model(model, train_loader, val_loader, device, epochs=25, unfreeze_int
               f"Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} "
               f"| Train MAE: {train_mae:.2f} | Val MAE: {val_mae:.2f}")
 
-        # Guardar mejor modelo
+        # Save best model
         if val_mae < best_val_mae:
             best_val_mae = val_mae
             no_improve_epochs = 0
@@ -123,6 +147,10 @@ def train_model(model, train_loader, val_loader, device, epochs=25, unfreeze_int
     plot_training_curves(history)
 
 def plot_training_curves(history, output_path="training_curves.png"):
+    """
+    Plots the training and validation curves for loss and MAE over epochs.
+
+    """
     epochs = range(1, len(history["train_loss"]) + 1)
 
     plt.figure(figsize=(12, 5))

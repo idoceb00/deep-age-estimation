@@ -22,7 +22,7 @@ class MORPHDataset(Dataset):
 
     def _extract_age(self, filename):
         """
-        Extrae la edad a partir de patrones como 01M30 → edad = 30
+        Extract age from patterns as 01M30 → age = 30.
         """
         match = re.search(r'M(\d{2})', filename)
         if match:

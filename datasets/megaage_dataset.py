@@ -1,5 +1,3 @@
-# datasets/megaage_dataset.py
-
 import os
 from PIL import Image, ImageFile
 import torch

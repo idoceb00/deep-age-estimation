@@ -12,7 +12,7 @@ class IMDBDataset(Dataset):
         self.root_dir = root_dir
         self.transform = transform
 
-        # Filtra filas con edades válidas (por seguridad)
+        # Filters rows with valid ages (for security)
         self.df = self.df[self.df['age'].notna() & (self.df['age'] > 0)].reset_index(drop=True)
         print(f"[INFO] {len(self.df)} imágenes válidas cargadas desde {csv_path}")
 

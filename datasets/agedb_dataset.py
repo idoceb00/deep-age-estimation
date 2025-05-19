@@ -21,8 +21,8 @@ class AgeDBDataset(Dataset):
 
     def _extract_age(self, filename):
         """
-        Extrae la edad del nombre del archivo.
-        Ejemplo: 0_MariaCallas_35_f.jpg → edad = 35
+        Extracts the age from the file name.
+        Example: 0_MariaCallas_35_f.jpg → age = 35
         """
         try:
             parts = filename.split("_")

@@ -34,6 +34,11 @@ def get_test_transforms():
 
 # Unified pattern for all datasets
 def split_dataset(full_dataset, used_portion, seed):
+    """
+    Randomly selects a subset of the dataset and splits it into train/val/test
+    The split follows a fixed 70/20/10 ratio
+
+    """
     total_len = int(len(full_dataset) * used_portion)
     subset_indices = random.sample(range(len(full_dataset)), total_len)
     subset = Subset(full_dataset, subset_indices)
@@ -46,6 +51,11 @@ def split_dataset(full_dataset, used_portion, seed):
                         generator=torch.Generator().manual_seed(seed))
 
 def get_dataloaders(dataset_cls, dataset_args, used_portion=1.0, batch_size=32, seed=42, num_workers=4):
+    """
+    Loads a dataset, samples a portion, splits into train/val/test, and returns
+    the corresponding DataLoaders.
+
+    """
     random.seed(seed)
     dataset = dataset_cls(**dataset_args, transform=get_train_transforms())
     train_set, val_set, test_set = split_dataset(dataset, used_portion, seed)

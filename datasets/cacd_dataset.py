@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from torch.utils.data import Dataset

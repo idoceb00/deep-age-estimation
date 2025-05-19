@@ -1,0 +1,12 @@
+name: deep-age-estimation
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python==3.10
+  - Pytorch
+  - torchvision
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - Pillow

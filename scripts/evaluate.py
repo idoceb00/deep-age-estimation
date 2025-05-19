@@ -5,12 +5,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def compute_age_group_accuracy(preds, targets, tolerance=5):
+    """
+    Compute the percentage of predictions that fall within a fiven tolerance(± years)
+    from the ground truth.
+
+    """
     preds = np.array(preds)
     targets = np.array(targets)
     correct = np.sum(np.abs(preds - targets) <= tolerance)
     return correct / len(targets)
 
 def plot_residual_error(preds, targets, output_path="residual_fgnet.png"):
+    """
+    Plots the distribution of residual errors
+
+    """
     residuals = np.array(preds) - np.array(targets)
 
     plt.figure(figsize=(8, 5))
@@ -25,6 +34,10 @@ def plot_residual_error(preds, targets, output_path="residual_fgnet.png"):
     print(f"[INFO] Residual plot guardado en {output_path}")
 
 def plot_absolute_error(preds, targets, output_path="abs_error_fgnet.png"):
+    """
+    Plots the distribution of absolute prediction errors
+
+    """
     errors = np.abs(np.array(preds) - np.array(targets))
     plt.figure(figsize=(8, 5))
     plt.hist(errors, bins=30, color='steelblue', edgecolor='black')
@@ -37,6 +50,11 @@ def plot_absolute_error(preds, targets, output_path="abs_error_fgnet.png"):
     plt.close()
 
 def evaluate(model, dataloader, device):
+    """
+    Evaluates a trained model on a given dataset and computes key metrics and
+    plots residual and absolute error distributions, and prints performance metrics and inference speed.
+
+    """
     model.eval()
     preds, targets = [], []
 

@@ -12,7 +12,7 @@ class UTKFaceDataset(Dataset):
         self.root_dir = root_dir
         self.transform = transform
 
-        # Eliminar entradas con edad inválida o vacía
+        # Delete entries with invalid or empty age
         self.df = self.df[self.df['age'].notna() & (self.df['age'] > 0)].reset_index(drop=True)
         print(f"[INFO] {len(self.df)} imágenes válidas cargadas desde {csv_path}")
 
